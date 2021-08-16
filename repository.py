@@ -66,21 +66,28 @@ class SqlRepository(AbstractRepository):
     def get_batch_id(self, reference) -> model.Batch:
         # self.session.execute('SELECT ??
         print(reference)
-        [[batch_id]] = self.session.execute(
+        l = self.session.execute(
             'SELECT id FROM batches WHERE reference=:reference',
             dict(reference=reference)
         )
+        batch_id = None
+        for row in l:
+            batch_id = row[0]
 
         return batch_id
 
     def get_orderline_id(self, sku, qty, orderid) -> model.Batch:
         # self.session.execute('SELECT ??
-        [[orderline_id]] = self.session.execute(
+        ids = self.session.execute(
             'SELECT id FROM order_lines where sku=:sku AND qty=:qty AND orderid=:orderid',
             dict(sku=sku, qty=qty, orderid=orderid)
         )
 
-        return orderline_id
+        order_id = None
+        for item in ids:
+            order_id = item[0]
+
+        return order_id
     
     def get_orderline_item(self, orderid):
         [[sku, quantity, orderid]] = self.session.execute(
