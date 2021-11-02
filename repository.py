@@ -29,8 +29,8 @@ class SqlAlchemyRepository(AbstractRepository):
 
 class FakeRepository(AbstractRepository):
 
-    def __init__(self) -> None:
-        self._batches = set()
+    def __init__(self, batches) -> None:
+        self._batches = set(batches)
 
     def add(self, batch):
         self._batches.add(batch)
