@@ -30,3 +30,45 @@ def allocate_endpoint():
         return {"message": str(e)}, 400
 
     return {"batchref": batchref}, 201
+
+
+@app.route("/deallocate", methods=["POST"])
+def deallocate_endpoint():
+    session = get_session()
+    repo = repository.SqlAlchemyRepository(session)
+    line = model.OrderLine(
+        request.json["orderid"],
+        request.json["sku"],
+        request.json["qty"]
+    )
+
+    try:
+        batchref = services.deallocate(line, repo, session)
+    except (model.OutOfStock, services.InvalidSku) as e:
+        return {"message": str(e)}, 400
+
+    return {"batchref": batchref}, 201
+
+
+@app.route("/add_batch", methods=["POST"])
+def add_batch():
+    session = get_session()
+    repo = repository.SqlAlchemyRepository(session)
+
+    services.add_batch(request.json["ref"], request.json["sku"],
+                       request.json["qty"], request.json.get("eta", None), repo, session)
+
+    return {"status": "success"}, 201
+
+
+@app.route("/get_batches", methods=["GET"])
+def get_batches():
+    session = get_session()
+    repo = repository.SqlAlchemyRepository(session)
+    batches = repo.list()
+
+    batches_str = []
+    for item in batches:
+        batches_str.append(str(item))
+
+    return {"batches": batches_str}

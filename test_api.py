@@ -20,6 +20,12 @@ def random_batchref(name=""):
 def random_orderid(name=""):
     return f"order-{name}-{random_suffix()}"
 
+def post_to_add_batch(ref, sku, qty, eta):
+    url = config.get_api_url()
+    r = requests.post(
+        f"{url}/add_batch", json={"ref": ref, "sku": sku, "qty": qty, "eta": eta}
+    )
+    assert r.status_code == 201
 
 @pytest.mark.usefixtures("restart_api")
 def test_happy_path_returns_201_and_allocated_batch(add_stock):
@@ -64,7 +70,7 @@ def test_deallocate():
     r = requests.post(
         f"{url}/allocate", json={"orderid": order1, "sku": sku, "qty": 100}
     )
-    assert r.json()["batchid"] == batch
+    assert r.json()["batchref"] == batch
 
     # cannot allocate second order
     r = requests.post(
@@ -78,6 +84,7 @@ def test_deallocate():
         json={
             "orderid": order1,
             "sku": sku,
+            "qty": 100
         },
     )
     assert r.ok
@@ -87,4 +94,4 @@ def test_deallocate():
         f"{url}/allocate", json={"orderid": order2, "sku": sku, "qty": 100}
     )
     assert r.ok
-    assert r.json()["batchid"] == batch
+    assert r.json()["batchref"] == batch
